@@ -1,0 +1,495 @@
+# Assignment Management System - Docker Compose
+# Production-ready configuration for VPS deployment
+# VPS Specs: 8GB RAM, 4 vCPUs
+#
+# Usage:
+#   docker-compose up -d        # Start all services
+#   docker-compose logs -f      # View logs
+#   docker-compose down         # Stop services
+#   docker-compose down -v      # Stop and remove volumes (DATA LOSS!)
+
+version: '3.8'
+
+services:
+  # ============================================
+  # DATABASE
+  # ============================================
+  db:
+    image: postgres:14-alpine
+    container_name: assignment_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres123}
+      POSTGRES_DB: ${POSTGRES_DB:-assignment_management}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-assignment_management}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  # ============================================
+  # DATABASE MIGRATION SERVICE
+  # Runs Alembic migrations before other services start
+  # ============================================
+  db-migration:
+    build: ./services/db-migration-service
+    container_name: db_migration
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_NAME: ${POSTGRES_DB:-assignment_management}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+
+  # ============================================
+  # API GATEWAY
+  # ============================================
+  api-gateway:
+    build: ./services/api-gateway
+    container_name: api_gateway
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:8001
+      USER_SERVICE_URL: http://user-service:8002
+      COURSE_SERVICE_URL: http://course-service:8003
+      ASSIGNMENT_SERVICE_URL: http://assignment-service:8004
+      SUBMISSION_SERVICE_URL: http://submission-service:8005
+      GRADING_SERVICE_URL: http://grading-service:8006
+      PEER_REVIEW_SERVICE_URL: http://peer-review-service:8007
+      PLAGIARISM_SERVICE_URL: http://plagiarism-service:8008
+      NOTIFICATION_SERVICE_URL: http://notification-service:8009
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost,http://localhost:80}
+    depends_on:
+      auth-service:
+        condition: service_healthy
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\"" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================
+  # AUTH SERVICE
+  # ============================================
+  auth-service:
+    build: ./services/auth-service
+    container_name: auth_service
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: auth-service
+      SERVICE_PORT: 8001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@system.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin@123456}
+      DEBUG: ${DEBUG:-False}
+    depends_on:
+      db-migration:
+        condition: service_completed_successfully
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8001/health')\"" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ============================================
+  # USER SERVICE
+  # ============================================
+  user-service:
+    build: ./services/user-service
+    container_name: user_service
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: user-service
+      SERVICE_PORT: 8002
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
+      AUTH_SERVICE_URL: http://auth-service:8001
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
+      DEBUG: ${DEBUG:-False}
+    depends_on:
+      db-migration:
+        condition: service_completed_successfully
+      auth-service:
+        condition: service_healthy
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8002/health')\"" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ============================================
+  # COURSE SERVICE
+  # ============================================
+  course-service:
+    build: ./services/course-service
+    container_name: course_service
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: course-service
+      SERVICE_PORT: 8003
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
+      AUTH_SERVICE_URL: http://auth-service:8001
+      USER_SERVICE_URL: http://user-service:8002
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
+      DEBUG: ${DEBUG:-False}
+      JITSI_DOMAIN: ${JITSI_DOMAIN:-meet.jit.si}
+      JITSI_APP_ID: ${JITSI_APP_ID:-}
+      JITSI_APP_SECRET: ${JITSI_APP_SECRET:-}
+    depends_on:
+      db-migration:
+        condition: service_completed_successfully
+      auth-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8003/health')\"" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ============================================
+  # ASSIGNMENT SERVICE
+  # ============================================
+  assignment-service:
+    build: ./services/assignment-service
+    container_name: assignment_service
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: assignment-service
+      SERVICE_PORT: 8004
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
+      AUTH_SERVICE_URL: http://auth-service:8001
+      COURSE_SERVICE_URL: http://course-service:8003
+      NOTIFICATION_SERVICE_URL: http://notification-service:8009
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
+      DEBUG: ${DEBUG:-False}
+    depends_on:
+      db-migration:
+        condition: service_completed_successfully
+      auth-service:
+        condition: service_healthy
+      course-service:
+        condition: service_healthy
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8004/health')\"" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ============================================
+  # SUBMISSION SERVICE
+  # ============================================
+  submission-service:
+    build: ./services/submission-service
+    container_name: submission_service
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: submission-service
+      SERVICE_PORT: 8005
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
+      AUTH_SERVICE_URL: http://auth-service:8001
+      ASSIGNMENT_SERVICE_URL: http://assignment-service:8004
+      NOTIFICATION_SERVICE_URL: http://notification-service:8009
+      UPLOAD_DIR: /app/uploads
+      MAX_FILE_SIZE: ${MAX_FILE_SIZE:-20971520}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
+      DEBUG: ${DEBUG:-False}
+    volumes:
+      - submission_uploads:/app/uploads
+    depends_on:
+      db-migration:
+        condition: service_completed_successfully
+      auth-service:
+        condition: service_healthy
+      assignment-service:
+        condition: service_healthy
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8005/health')\"" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ============================================
+  # GRADING SERVICE
+  # ============================================
+  grading-service:
+    build: ./services/grading-service
+    container_name: grading_service
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: grading-service
+      SERVICE_PORT: 8006
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
+      AUTH_SERVICE_URL: http://auth-service:8001
+      SUBMISSION_SERVICE_URL: http://submission-service:8005
+      NOTIFICATION_SERVICE_URL: http://notification-service:8009
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
+      DEBUG: ${DEBUG:-False}
+    depends_on:
+      db-migration:
+        condition: service_completed_successfully
+      auth-service:
+        condition: service_healthy
+      submission-service:
+        condition: service_healthy
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8006/health')\"" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ============================================
+  # PEER REVIEW SERVICE
+  # ============================================
+  peer-review-service:
+    build: ./services/peer-review-service
+    container_name: peer_review_service
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: peer-review-service
+      SERVICE_PORT: 8007
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
+      AUTH_SERVICE_URL: http://auth-service:8001
+      SUBMISSION_SERVICE_URL: http://submission-service:8005
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
+      DEBUG: ${DEBUG:-False}
+    depends_on:
+      db-migration:
+        condition: service_completed_successfully
+      auth-service:
+        condition: service_healthy
+      submission-service:
+        condition: service_healthy
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8007/health')\"" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ============================================
+  # PLAGIARISM SERVICE
+  # ============================================
+  plagiarism-service:
+    build: ./services/plagiarism-service
+    container_name: plagiarism_service
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: plagiarism-service
+      SERVICE_PORT: 8008
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
+      AUTH_SERVICE_URL: http://auth-service:8001
+      SUBMISSION_SERVICE_URL: http://submission-service:8005
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
+      DEBUG: ${DEBUG:-False}
+    depends_on:
+      db-migration:
+        condition: service_completed_successfully
+      auth-service:
+        condition: service_healthy
+      submission-service:
+        condition: service_healthy
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8008/health')\"" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ============================================
+  # NOTIFICATION SERVICE
+  # ============================================
+  notification-service:
+    build: ./services/notification-service
+    container_name: notification_service
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: notification-service
+      SERVICE_PORT: 8009
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
+      AUTH_SERVICE_URL: http://auth-service:8001
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-noreply@yourdomain.com}
+      DEBUG: ${DEBUG:-False}
+    depends_on:
+      db-migration:
+        condition: service_completed_successfully
+      auth-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8009/health')\"" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ============================================
+  # FRONTEND (React + Nginx)
+  # ============================================
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: ""
+    container_name: frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+# ============================================
+# VOLUMES
+# ============================================
+volumes:
+  postgres_data:
+    driver: local
+  submission_uploads:
+    driver: local
+
+# ============================================
+# NETWORKS
+# ============================================
+networks:
+  app-network:
+    driver: bridge
