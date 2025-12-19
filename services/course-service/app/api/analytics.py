@@ -305,10 +305,22 @@ async def get_user_dashboard(
                                 my_submission = assignment.get("my_submission")
                                 if my_submission and my_submission.get("status") == "submitted":
                                     completed_count += 1
+            except httpx.TimeoutException as e:
+                print(f"[Dashboard] Timeout fetching assignments: {e}")
+                # Continue with default values (0)
+            except httpx.RequestError as e:
+                print(f"[Dashboard] Request error fetching assignments: {e}")
+                # Continue with default values (0)
             except Exception as e:
                 print(f"[Dashboard] Error fetching assignments: {e}")
+                import traceback
+                traceback.print_exc()
+                # Continue with default values (0)
     except Exception as e:
         print(f"[Dashboard] Error connecting to assignment service: {e}")
+        import traceback
+        traceback.print_exc()
+        # Continue with default values (0)
     
     # Get grades stats from grading-service (for students)
     if current_user.role == UserRole.STUDENT:
@@ -324,10 +336,22 @@ async def get_user_dashboard(
                             scores = [g.get("score", 0) for g in grades if g.get("score") is not None]
                             if scores:
                                 avg_grade = sum(scores) / len(scores)
+                except httpx.TimeoutException as e:
+                    print(f"[Dashboard] Timeout fetching grades: {e}")
+                    # Continue with default values (None)
+                except httpx.RequestError as e:
+                    print(f"[Dashboard] Request error fetching grades: {e}")
+                    # Continue with default values (None)
                 except Exception as e:
                     print(f"[Dashboard] Error fetching grades: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    # Continue with default values (None)
         except Exception as e:
             print(f"[Dashboard] Error connecting to grading service: {e}")
+            import traceback
+            traceback.print_exc()
+            # Continue with default values (None)
     
     # Get quiz attempts
     quiz_attempts = db.query(QuizAttempt).join(Quiz).filter(

@@ -74,6 +74,12 @@ services:
       - "8001"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-noreply@assignment.com}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
     depends_on:
       db-migration:
         condition: service_completed_successfully
@@ -91,6 +97,12 @@ services:
       - "8002"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-noreply@assignment.com}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
     depends_on:
       db-migration:
         condition: service_completed_successfully
@@ -206,6 +218,13 @@ services:
       - "8009"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-noreply@assignment.com}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-Assignment Management System}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
     depends_on:
       db-migration:
         condition: service_completed_successfully
@@ -221,6 +240,10 @@ services:
     restart: unless-stopped
     expose:
       - "80"
+    environment:
+      # Note: VITE_API_BASE_URL must be set at build time, not runtime
+      # If using separate domains (e.g., projectm.io.vn and api.projectm.io.vn),
+      # set VITE_API_BASE_URL=https://api.projectm.io.vn/api in .env before building
     depends_on:
       api-gateway:
         condition: service_started

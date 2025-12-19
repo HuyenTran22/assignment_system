@@ -205,25 +205,35 @@ async def forward_request(service: str, path: str, request: Request):
                     headers=response_headers
                 )
         except httpx.TimeoutException as e:
-            print(f"[Gateway] Timeout error to {service}: {e}")
-            return JSONResponse(
-                content={"error": "Service timeout", "detail": "The service did not respond in time"},
-                status_code=504
-            )
-        except httpx.RequestError as e:
-            print(f"[Gateway] Request error to {service}: {e}")
+            print(f"[Gateway] Timeout error to {service} at {url}: {e}")
             import traceback
             traceback.print_exc()
             return JSONResponse(
-                content={"error": "Service unavailable", "detail": str(e)},
+                content={"error": "Service timeout", "detail": f"The service {service} did not respond in time", "service": service, "url": url},
+                status_code=504
+            )
+        except httpx.ConnectError as e:
+            print(f"[Gateway] Connection error to {service} at {url}: {e}")
+            import traceback
+            traceback.print_exc()
+            return JSONResponse(
+                content={"error": "Service unavailable", "detail": f"Cannot connect to service {service}. Service may be down or unreachable.", "service": service, "url": url},
+                status_code=503
+            )
+        except httpx.RequestError as e:
+            print(f"[Gateway] Request error to {service} at {url}: {e}")
+            import traceback
+            traceback.print_exc()
+            return JSONResponse(
+                content={"error": "Service unavailable", "detail": f"Error communicating with service {service}: {str(e)}", "service": service, "url": url},
                 status_code=503
             )
         except Exception as e:
-            print(f"[Gateway] Unexpected error forwarding to {service}: {e}")
+            print(f"[Gateway] Unexpected error forwarding to {service} at {url}: {e}")
             import traceback
             traceback.print_exc()
             return JSONResponse(
-                content={"error": "Internal gateway error", "detail": str(e)},
+                content={"error": "Internal gateway error", "detail": f"Unexpected error: {str(e)}", "service": service, "url": url},
                 status_code=500
             )
 
