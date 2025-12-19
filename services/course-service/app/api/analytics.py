@@ -242,21 +242,22 @@ async def get_user_dashboard(
     import httpx
     from app.core.config import settings
     
-    # Get Authorization header from request to forward to other services
-    auth_header = request.headers.get("Authorization")
-    headers = {}
-    if auth_header:
-        headers["Authorization"] = auth_header
-    
-    # Get user's enrollments
-    enrollments = db.query(CourseEnrollment).filter(
-        CourseEnrollment.user_id == current_user.id
-    ).all()
-    
-    course_ids = [e.course_id for e in enrollments]
-    
-    # Get courses user is enrolled in
-    courses = db.query(Course).filter(Course.id.in_(course_ids)).all() if course_ids else []
+    try:
+        # Get Authorization header from request to forward to other services
+        auth_header = request.headers.get("Authorization")
+        headers = {}
+        if auth_header:
+            headers["Authorization"] = auth_header
+        
+        # Get user's enrollments
+        enrollments = db.query(CourseEnrollment).filter(
+            CourseEnrollment.user_id == current_user.id
+        ).all()
+        
+        course_ids = [e.course_id for e in enrollments]
+        
+        # Get courses user is enrolled in
+        courses = db.query(Course).filter(Course.id.in_(course_ids)).all() if course_ids else []
     
     # Calculate courses count
     total_courses = len(courses)
@@ -414,12 +415,15 @@ async def get_user_dashboard(
     now = datetime.utcnow()
     upcoming_quizzes = []
     if current_user.role == UserRole.STUDENT:
-        upcoming_quizzes_query = db.query(Quiz).filter(
-            Quiz.course_id.in_(course_ids),
-            Quiz.is_published == True,
-            Quiz.start_time > now,
-            Quiz.end_time > now
-        ).order_by(Quiz.start_time.asc()).limit(5).all()
+        if course_ids:
+            upcoming_quizzes_query = db.query(Quiz).filter(
+                Quiz.course_id.in_(course_ids),
+                Quiz.is_published == True,
+                Quiz.start_time > now,
+                Quiz.end_time > now
+            ).order_by(Quiz.start_time.asc()).limit(5).all()
+        else:
+            upcoming_quizzes_query = []
         
         for quiz in upcoming_quizzes_query:
             # Check if student has already submitted
@@ -440,10 +444,13 @@ async def get_user_dashboard(
             })
     else:
         # For teachers: quizzes with upcoming deadlines or needing attention
-        upcoming_quizzes_query = db.query(Quiz).filter(
-            Quiz.course_id.in_(course_ids),
-            Quiz.end_time > now
-        ).order_by(Quiz.end_time.asc()).limit(5).all()
+        if course_ids:
+            upcoming_quizzes_query = db.query(Quiz).filter(
+                Quiz.course_id.in_(course_ids),
+                Quiz.end_time > now
+            ).order_by(Quiz.end_time.asc()).limit(5).all()
+        else:
+            upcoming_quizzes_query = []
         
         for quiz in upcoming_quizzes_query:
             # Count students who haven't submitted
@@ -471,21 +478,24 @@ async def get_user_dashboard(
     recent_activities = []
     
     # Recent quiz attempts
-    if current_user.role == UserRole.STUDENT:
-        recent_attempts = db.query(QuizAttempt).options(
-            joinedload(QuizAttempt.quiz),
-            joinedload(QuizAttempt.user)
-        ).join(Quiz).filter(
-            Quiz.course_id.in_(course_ids),
-            QuizAttempt.user_id == current_user.id
-        ).order_by(QuizAttempt.started_at.desc()).limit(5).all()
+    if course_ids:
+        if current_user.role == UserRole.STUDENT:
+            recent_attempts = db.query(QuizAttempt).options(
+                joinedload(QuizAttempt.quiz),
+                joinedload(QuizAttempt.user)
+            ).join(Quiz).filter(
+                Quiz.course_id.in_(course_ids),
+                QuizAttempt.user_id == current_user.id
+            ).order_by(QuizAttempt.started_at.desc()).limit(5).all()
+        else:
+            recent_attempts = db.query(QuizAttempt).options(
+                joinedload(QuizAttempt.quiz),
+                joinedload(QuizAttempt.user)
+            ).join(Quiz).filter(
+                Quiz.course_id.in_(course_ids)
+            ).order_by(QuizAttempt.started_at.desc()).limit(5).all()
     else:
-        recent_attempts = db.query(QuizAttempt).options(
-            joinedload(QuizAttempt.quiz),
-            joinedload(QuizAttempt.user)
-        ).join(Quiz).filter(
-            Quiz.course_id.in_(course_ids)
-        ).order_by(QuizAttempt.started_at.desc()).limit(5).all()
+        recent_attempts = []
     
     for attempt in recent_attempts:
         quiz = attempt.quiz
@@ -531,25 +541,34 @@ async def get_user_dashboard(
                 CourseEnrollment.role_in_course == CourseRole.student
             ).distinct(CourseEnrollment.user_id).count()
     
-    return {
-        "user_id": str(current_user.id),
-        "role": current_user.role.value,
-        "total_courses": total_courses,
-        "total_assignments": total_assignments,
-        "total_submissions": total_submissions if current_user.role == UserRole.TEACHER else completed_count,
-        "to_grade": to_grade_count if current_user.role == UserRole.TEACHER else None,
-        "avg_grade": avg_grade if current_user.role == UserRole.STUDENT else None,
-        "total_quiz_attempts": total_quiz_attempts,
-        "completed_quizzes": completed_quizzes,
-        "average_quiz_score": avg_quiz_score,
-        "total_sessions_attended": total_sessions_attended,
-        "total_attendance_minutes": total_attendance_minutes,
-        "courses": courses_list,
-        "upcoming_quizzes": upcoming_quizzes,
-        "recent_activities": recent_activities[:10],  # Limit to 10 most recent
-        "certificates_count": certificates_count if current_user.role == UserRole.STUDENT else None,
-        "total_students": total_students if current_user.role == UserRole.TEACHER else None
-    }
+        return {
+            "user_id": str(current_user.id),
+            "role": current_user.role.value,
+            "total_courses": total_courses,
+            "total_assignments": total_assignments,
+            "total_submissions": total_submissions if current_user.role == UserRole.TEACHER else completed_count,
+            "to_grade": to_grade_count if current_user.role == UserRole.TEACHER else None,
+            "avg_grade": avg_grade if current_user.role == UserRole.STUDENT else None,
+            "total_quiz_attempts": total_quiz_attempts,
+            "completed_quizzes": completed_quizzes,
+            "average_quiz_score": avg_quiz_score,
+            "total_sessions_attended": total_sessions_attended,
+            "total_attendance_minutes": total_attendance_minutes,
+            "courses": courses_list,
+            "upcoming_quizzes": upcoming_quizzes,
+            "recent_activities": recent_activities[:10],  # Limit to 10 most recent
+            "certificates_count": certificates_count if current_user.role == UserRole.STUDENT else None,
+            "total_students": total_students if current_user.role == UserRole.TEACHER else None
+        }
+    except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"[Dashboard] Error in get_user_dashboard: {e}")
+        print(error_trace)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to load dashboard data: {str(e)}"
+        )
 
 
 @router.get("/analytics/system")
