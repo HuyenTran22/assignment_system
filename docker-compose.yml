@@ -235,7 +235,9 @@ services:
     build:
       context: ./frontend
       args:
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+        # Default to empty string - frontend code already has /api prefix
+        # If using separate domains, set VITE_API_BASE_URL=https://api.projectm.io.vn in .env
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
     container_name: frontend
     restart: unless-stopped
     expose:

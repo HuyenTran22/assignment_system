@@ -5,10 +5,16 @@ import axios from 'axios';
 const getBaseURL = () => {
     const envUrl = import.meta.env.VITE_API_BASE_URL;
     if (envUrl && envUrl.trim() !== '') {
-        return envUrl;
+        // If VITE_API_BASE_URL is set, use it directly
+        // For production with separate domains: set VITE_API_BASE_URL=https://api.projectm.io.vn
+        // For same domain with nginx proxy: set VITE_API_BASE_URL='' (empty) or don't set it
+        // Note: Code already includes /api prefix in URLs, so don't add /api here
+        const baseUrl = envUrl.trim();
+        // Remove trailing slash if present
+        return baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     }
-    // Use empty string to use relative URLs (will go through Vite proxy)
-    // Vite proxy will forward /auth/* and /api/* to http://127.0.0.1:8000
+    // Use empty string to use relative URLs (will go through nginx proxy in production)
+    // Nginx proxy will forward /api/* to api-gateway:8000
     return '';
 };
 
