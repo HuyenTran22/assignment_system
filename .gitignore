@@ -82,6 +82,9 @@ frontend/.env.production.local
 .env.*.local
 *.env
 
+# Personal backup (KEEP THIS SAFE - DO NOT SHARE!)
+MY_PERSONAL_CONFIG.txt
+
 # Database
 *.db
 *.sqlite
