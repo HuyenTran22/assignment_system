@@ -240,10 +240,9 @@ services:
     restart: unless-stopped
     expose:
       - "80"
-    environment:
-      # Note: VITE_API_BASE_URL must be set at build time, not runtime
-      # If using separate domains (e.g., projectm.io.vn and api.projectm.io.vn),
-      # set VITE_API_BASE_URL=https://api.projectm.io.vn/api in .env before building
+    # Note: VITE_API_BASE_URL must be set at build time via build args, not runtime environment
+    # If using separate domains (e.g., projectm.io.vn and api.projectm.io.vn),
+    # set VITE_API_BASE_URL=https://api.projectm.io.vn/api in .env before building
     depends_on:
       api-gateway:
         condition: service_started
