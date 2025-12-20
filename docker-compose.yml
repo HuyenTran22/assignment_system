@@ -80,6 +80,8 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM: ${SMTP_FROM:-noreply@assignment.com}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
     depends_on:
       db-migration:
         condition: service_completed_successfully
@@ -103,6 +105,8 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM: ${SMTP_FROM:-noreply@assignment.com}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
     depends_on:
       db-migration:
         condition: service_completed_successfully
@@ -119,6 +123,13 @@ services:
       - "8003"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
+      ASSIGNMENT_SERVICE_URL: http://assignment-service:8004
+      GRADING_SERVICE_URL: http://grading-service:8006
+      AUTH_SERVICE_URL: http://auth-service:8001
+      USER_SERVICE_URL: http://user-service:8002
+      NOTIFICATION_SERVICE_URL: http://notification-service:8009
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
     depends_on:
       db-migration:
         condition: service_completed_successfully
@@ -135,6 +146,9 @@ services:
       - "8004"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
+      NOTIFICATION_SERVICE_URL: http://notification-service:8009
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
     depends_on:
       db-migration:
         condition: service_completed_successfully
@@ -152,6 +166,9 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
       UPLOAD_DIR: ${UPLOAD_DIR:-/app/uploads}
+      PLAGIARISM_SERVICE_URL: http://plagiarism-service:8008
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
     volumes:
       - submission_uploads:${UPLOAD_DIR:-/app/uploads}
     depends_on:
@@ -170,6 +187,8 @@ services:
       - "8006"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
     depends_on:
       db-migration:
         condition: service_completed_successfully
@@ -186,6 +205,8 @@ services:
       - "8007"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
     depends_on:
       db-migration:
         condition: service_completed_successfully
@@ -202,6 +223,8 @@ services:
       - "8008"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
     depends_on:
       db-migration:
         condition: service_completed_successfully
@@ -225,6 +248,8 @@ services:
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-noreply@assignment.com}
       SMTP_FROM_NAME: ${SMTP_FROM_NAME:-Assignment Management System}
       SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
     depends_on:
       db-migration:
         condition: service_completed_successfully
