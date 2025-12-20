@@ -1,0 +1,515 @@
+BÁO CÁO ĐỒ ÁN TỐT NGHIỆP
+ĐỀ TÀI: XÂY DỰNG HỆ THỐNG QUẢN LÝ KHÓA HỌC TRỰC TUYẾN (LMS) THEO KIẾN TRÚC MICROSERVICES
+====================================================================================================
+
+LỜI NÓI ĐẦU
+-------------
+
+Trong bối cảnh chuyển đổi số mạnh mẽ trong lĩnh vực giáo dục, nhu cầu học tập trực tuyến ngày càng tăng cao. Các hệ thống quản lý khóa học trực tuyến (Learning Management System - LMS) đóng vai trò then chốt trong việc tạo môi trường học tập linh hoạt, hiệu quả, cho phép giảng viên và học viên có thể tương tác mọi lúc, mọi nơi. Tuy nhiên, đa phần các hệ thống LMS thương mại lớn hiện nay có cấu trúc phức tạp, khó tùy biến, chi phí cao, chưa thực sự phù hợp với nhu cầu thử nghiệm, học tập và triển khai quy mô nhỏ của các cơ sở đào tạo hoặc cá nhân.
+
+Xuất phát từ thực tế đó, đồ án “Xây dựng hệ thống Quản lý Khóa học Trực tuyến (LMS) theo kiến trúc Microservices” được thực hiện nhằm:
+- Ứng dụng những kiến thức đã học về lập trình Web, cơ sở dữ liệu, an toàn thông tin, DevOps, kiến trúc hệ thống.
+- Tạo ra một sản phẩm có thể triển khai thực tế trên VPS, sử dụng domain thật, phục vụ cho mục đích học tập hoặc triển khai nhỏ.
+- Rèn luyện quy trình làm việc bài bản từ phân tích yêu cầu, thiết kế, triển khai, kiểm thử, triển khai đến vận hành và xử lý sự cố.
+
+Báo cáo này trình bày chi tiết toàn bộ quá trình xây dựng hệ thống, từ bài toán đặt ra, cơ sở lý thuyết, phân tích, thiết kế, thực thi, đến triển khai và đánh giá kết quả. Nội dung được tổ chức theo cấu trúc một báo cáo đồ án tốt nghiệp, có thể in ra và đóng thành quyển để trình bày trước hội đồng.
+
+Em xin chân thành cảm ơn Quý Thầy/Cô đã hướng dẫn, góp ý trong suốt quá trình thực hiện đồ án. Mặc dù đã cố gắng nhưng không tránh khỏi những thiếu sót, rất mong nhận được những góp ý quý báu để hoàn thiện hơn.
+
+
+CHƯƠNG 1. GIỚI THIỆU ĐỀ TÀI VÀ BÀI TOÁN ĐẶT RA
+==================================================
+
+1.1. BỐI CẢNH VÀ TÍNH CẤP THIẾT CỦA ĐỀ TÀI
+-----------------------------------------------
+
+Trong những năm gần đây, mô hình học trực tuyến (E-learning) đã phát triển mạnh mẽ nhờ sự phổ biến của Internet, các thiết bị di động và nền tảng số. Các trường đại học, trung tâm đào tạo, thậm chí cá nhân giảng dạy tự do đều cần những nền tảng LMS để:
+- Quản lý nội dung khóa học một cách tập trung.
+- Tổ chức bài giảng, bài tập, bài kiểm tra, đánh giá học viên.
+- Theo dõi tiến độ học tập, kết quả, thống kê số liệu.
+- Hỗ trợ tương tác trực tuyến (live session, video call) giữa giảng viên và học viên.
+
+Tuy nhiên, các hệ thống thương mại lớn (Moodle, Canvas, Google Classroom, …) thường có những hạn chế đối với mục đích thử nghiệm/học tập:
+- Khó tùy biến sâu, đặc biệt ở mức độ mã nguồn và kiến trúc.
+- Yêu cầu hạ tầng lớn hoặc chi phí sử dụng, triển khai tương đối cao.
+- Cấu trúc monolithic hoặc phức tạp, khó áp dụng vào những bài toán nhỏ.
+
+Do đó, việc tự xây dựng một hệ thống LMS có kiến trúc rõ ràng, công nghệ hiện đại, dễ triển khai trên hạ tầng phổ biến (VPS, Docker, Nginx) vừa giúp sinh viên củng cố kiến thức, vừa tạo ra một sản phẩm thực tế có thể đưa vào sử dụng.
+
+
+1.2. MỤC ĐÍCH, MỤC TIÊU CỦA ĐỀ TÀI
+--------------------------------------
+
+1.2.1. Mục đích dự án
+- Xây dựng một hệ thống quản lý khóa học trực tuyến (Learning Management System - LMS) giúp giảng viên và học viên có thể:
+  + Tạo và quản lý khóa học.
+  + Quản lý nội dung bài học, tài liệu, bài tập.
+  + Giao bài, nộp bài, chèm chấm điểm, nhận phản hồi.
+  + Thống kê kết quả học tập và hoạt động của học viên.
+
+- Hệ thống được xây dựng với mục tiêu:
+  + Mô phỏng tương đối đầy đủ các chức năng của một nền tảng LMS hiện đại.
+  + Ứng dụng kiến trúc Microservices trong thực tế.
+  + Tối ưu hóa khả năng mở rộng (scalability) và dễ dàng triển khai trên môi trường thực (VPS, domain thật).
+
+1.2.2. Mục tiêu chính
+- Xây dựng đầy đủ các chức năng chính của một hệ thống LMS:
+  + Quản lý người dùng, vai trò, quyền hạn.
+  + Quản lý khóa học, bài học, tài liệu.
+  + Quản lý bài tập, bài nộp, chấm điểm, phản hồi.
+  + Thống kê, báo cáo, thông báo.
+- Áp dụng:
+  + Backend: FastAPI, PostgreSQL, SQLAlchemy, Alembic, JWT.
+  + Frontend: React, TypeScript, MUI, React Router, Axios.
+  + Hạ tầng: Docker, Docker Compose, Nginx, VPS, domain.
+- Thực hành các kỹ năng:
+  + Thiết kế CSDL quan hệ.
+  + Thiết kế API REST theo mô hình Microservices.
+  + Xử lý xác thực, phân quyền, bảo mật.
+  + Xử lý fan-out giữa các service (gateway → các microservices).
+  + Xử lý lỗi thực tế (CORS, reverse proxy, env, v.v.).
+
+
+1.3. PHẠM VI VÀ ĐỐI TƯỢNG SỬ DỤNG
+-------------------------------------
+
+- Phạm vi chức năng:
+  + Hỗ trợ mô hình khóa học trực tuyến cơ bản, phù hợp với các trường đại học, trung tâm đào tạo nhỏ và cá nhân giảng dạy.
+  + Tập trung vào các chức năng cốt lõi: Quản lý khóa học, bài học, bài tập, bài nộp, chấm điểm, thông báo.
+  + Các chức năng nâng cao như thanh toán online, kiểm tra đạo văn chuyên sâu, phân tích dữ liệu nâng cao mới ở mức cơ sở/định hướng.
+- Đối tượng sử dụng chính:
+  + Quản trị viên hệ thống (Admin).
+  + Giảng viên (Lecturer).
+  + Học viên (Student).
+
+
+1.4. CẤU TRÚC BÁO CÁO
+------------------------
+
+Báo cáo được chia thành các chương chính sau:
+- Chương 1: Giới thiệu đề tài và bài toán đặt ra.
+- Chương 2: Cơ sở lý thuyết (Web, REST, Microservices, JWT, CORS, Docker, Nginx, v.v.).
+- Chương 3: Phân tích yêu cầu và mô hình hóa hệ thống.
+- Chương 4: Thiết kế hệ thống (kiến trúc, CSDL, API, giao diện).
+- Chương 5: Triển khai và thử nghiệm.
+- Chương 6: Xử lý sự cố thực tế (case CORS) và bài học kinh nghiệm.
+- Chương 7: Kết luận và hướng phát triển.
+
+
+CHƯƠNG 2. CƠ SỞ LÝ THUYẾT BỔ TRỢ
+====================================
+
+Mục đích của chương này là trình bày những khái niệm lý thuyết, mô hình, công nghệ chính được sử dụng trong đề tài, làm nền tảng cho các chương phân tích và thiết kế sau.
+
+2.1. KIẾN TRÚC ỨNG DỤNG WEB VÀ MÔ HÌNH CLIENT–SERVER
+--------------------------------------------------------
+
+2.1.1. Mô hình Client–Server
+- Mô hình Client–Server là mô hình cơ bản của các ứng dụng Web hiện nay. Trong đó:
+  + **Client** (trình duyệt, ứng dụng di động, …) gửi yêu cầu (request) tới server.
+  + **Server** xử lý yêu cầu, tương tác với cơ sở dữ liệu hoặc các dịch vụ khác, và trả về kết quả (response) cho client.
+- Các giao thức thường dùng:
+  + HTTP/HTTPS: Giao thức nền tảng cho Web.
+  + WebSocket: Giao thức 2 chiều cho ứng dụng real-time.
+
+2.1.2. Ứng dụng mô hình Client–Server trong LMS
+- Trong đề tài này:
+  + Client chính là ứng dụng React chạy trên trình duyệt của học viên/giảng viên.
+  + Server được chia thành nhiều microservice (auth, user, course, …) đứng sau một API Gateway.
+  + Mỗi request từ client sẽ đi qua gateway, được chuyển đến service phù hợp.
+
+
+2.2. RESTful API VÀ KIẾN TRÚC MICROSERVICES
+---------------------------------------------
+
+2.2.1. RESTful API
+- REST (Representational State Transfer) là phong cách thiết kế cho các dịch vụ Web, với các nguyên tắc chính:
+  + Sử dụng các phương thức HTTP (GET, POST, PUT, DELETE, …) để thao tác với tài nguyên.
+  + Mỗi URL đại diện cho một tài nguyên (resource): `/users`, `/courses`, `/assignments/{id}`.
+  + Stateless: Mỗi request được xử lý độc lập, server không lưu trạng thái phiên (session) phía server, mà dựa vào token/JWT.
+  + Dữ liệu thường được gửi/nhận dưới dạng JSON.
+
+2.2.2. Microservices
+- Microservices là mô hình kiến trúc chia hệ thống thành nhiều dịch vụ nhỏ, mỗi dịch vụ:
+  + Đảm nhiệm một nhóm chức năng nhất định.
+  + Có CSDL hoặc schema riêng.
+  + Có thể triển khai, scale, cập nhật độc lập.
+- Lợi ích:
+  + Dễ mở rộng từng thành phần.
+  + Dễ bảo trì, cô lập lỗi.
+  + Phù hợp với tổ chức phát triển nhiều nhóm.
+- Thách thức:
+  + Phức tạp hơn về triển khai, networking, monitoring.
+  + Cần giải quyết các vấn đề như discovery, load balancing, distributed tracing, v.v.
+
+2.2.3. Áp dụng Microservices trong đề tài
+- Hệ thống LMS trong đề tài được chia thành các service chính:
+  - Auth, User, Course, Assignment, Submission, Grading, Peer Review, Plagiarism, Notification.
+- Mỗi service có:
+  - Mã nguồn backend FastAPI riêng.
+  - Thư mục alembic riêng cho migration.
+  - Dockerfile riêng.
+
+
+2.3. JSON WEB TOKEN (JWT) VÀ BẢO MẬT
+-------------------------------------
+
+2.3.1. Khái niệm JWT
+- JWT là chuẩn mở (RFC 7519) định nghĩa một dạng token nhẹ, dạng chuỗi, dùng để truyền tải thông tin giữa các bên một cách an toàn.
+- Cấu trúc JWT gồm 3 phần:
+  + Header: Chứa thông tin thuật toán ký và loại token.
+  + Payload: Chứa các claim (thông tin user, vai trò, thời hạn).
+  + Signature: Chữ ký số dựa trên header, payload và secret key.
+
+2.3.2. Ứng dụng JWT trong hệ thống
+- Trong đề tài, JWT được sử dụng cho:
+  + Xác thực user khi đăng nhập.
+  + Đi kèm trong header `Authorization: Bearer <token>` khi gọi các API yêu cầu đăng nhập.
+  + Phân quyền theo vai trò (role-based access control – RBAC).
+
+
+2.4. CORS (CROSS-ORIGIN RESOURCE SHARING)
+-----------------------------------------
+
+2.4.1. Khái niệm CORS
+- CORS là cơ chế bảo mật của trình duyệt cho phép hoặc từ chối các request được gửi từ một origin (domain/port/protocol) khác tới server.
+- Ví dụ:
+  + Frontend chạy trên `https://projectm.io.vn`.
+  + API chạy trên `https://api.projectm.io.vn`.
+  + Đây là hai origin khác nhau, do đó browser sẽ kiểm tra chính sách CORS.
+
+2.4.2. Preflight request
+- Đối với những request có thể ảnh hưởng tới bảo mật (như `POST` với header tùy chỉnh), trình duyệt sẽ gửi một request `OPTIONS` trước (preflight) để hỏi server xem có cho phép origin đó thực hiện request chính hay không.
+- Nếu server không trả về các header phù hợp (đặc biệt là `Access-Control-Allow-Origin`), browser sẽ chặn request chính.
+
+2.4.3. Cấu hình CORS trong FastAPI
+- FastAPI cung cấp middleware `CORSMiddleware` cho phép:
+  + Khai báo danh sách origin được phép (`allow_origins`).
+  + Cho phép header, method, credential, v.v.
+- Vấn đề thường gặp:
+  + Đọc `CORS_ORIGINS` từ env thành string nhưng không split thành list → backend nghĩ chỉ có 1 origin, làm preflight fail.
+  + Gateway/bộ phận trung gian không cấu hình CORS đúng → browser báo lỗi mặc dù các service phía sau đã đúng.
+
+
+2.5. DOCKER, DOCKER COMPOSE VÀ NGINX
+------------------------------------
+
+2.5.1. Docker
+- Docker là nền tảng container hóa cho phép đóng gói ứng dụng và phụ thuộc vào trong các image, chạy đồng nhất trên nhiều môi trường khác nhau.
+
+2.5.2. Docker Compose
+- Docker Compose cho phép định nghĩa và khởi động nhiều container liên quan nhau trong một file duy nhất (`docker-compose.yml`):
+  + Đặt tên service.
+  + Chỉ định image hoặc build context.
+  + Khai báo env, volume, network.
+  + Dễ quản lý vòng đời các container (up/down).
+
+2.5.3. Nginx và Nginx Proxy Manager
+- Nginx là web server/ reverse proxy phổ biến, thường dùng:
+  + Làm reverse proxy đứng trước các ứng dụng backend.
+  + Terminate SSL (xử lý HTTPS).
+  + Cân bằng tải (load balancing).
+- Nginx Proxy Manager là một giao diện Web giúp quản lý Nginx trực quan hơn.
+
+
+2. TỔNG QUAN KIẾN TRÚC HỆ THỐNG
+-----------------------------------
+
+2.1. Kiến trúc tổng thể
+- Hệ thống được xây dựng theo mô hình **Microservices**:
+  + Mỗi chức năng chính (auth, user, course, assignment, submission, grading, notification, …) được tách thành một service độc lập.
+  + Các service giao tiếp với nhau thông qua HTTP (REST API) và được điều phối bởi một **API Gateway**.
+
+- Các thành phần chính:
+  1. **Frontend** (`frontend`):
+     - Ứng dụng React/TypeScript build bằng Vite, triển khai trong container, chạy sau Nginx.
+  2. **API Gateway** (`services/api-gateway`):
+     - FastAPI làm gateway, nhận toàn bộ request từ frontend và forward tới các microservice tương ứng.
+  3. **Các Microservices backend**:
+     - `auth-service`: Xử lý xác thực, đăng nhập/đăng ký, JWT, refresh token.
+     - `user-service`: Quản lý thông tin người dùng, hồ sơ, vai trò.
+     - `course-service`: Quản lý khóa học, bài học, tài liệu.
+     - `assignment-service`: Quản lý bài tập.
+     - `submission-service`: Quản lý bài nộp, upload file.
+     - `grading-service`: Chấm điểm, rubric.
+     - `peer-review-service`: Đánh giá chéo.
+     - `plagiarism-service`: Kiểm tra đạo văn.
+     - `notification-service`: Thông báo (email, in-app).
+  4. **Database** (`db`):
+     - PostgreSQL 14 chạy trong container, được chia sẻ cho các service (thông qua `DATABASE_URL`).
+  5. **Database Migration** (`db-migration-service`):
+     - Service chạy Alembic để apply migration một lần khi hệ thống khởi động.
+  6. **Hạ tầng Docker & Nginx**:
+     - Toàn bộ services được định nghĩa trong `docker-compose.yml`, kết nối qua `app-network` và `web` network (để kết nối với Nginx Proxy Manager / reverse proxy bên ngoài).
+
+2.2. Kiến trúc triển khai (deployment)
+- Toàn bộ hệ thống được triển khai lên VPS thông qua:
+  + `docker compose build`
+  + `docker compose up -d`
+- Nginx Proxy Manager/Nginx bên ngoài làm reverse proxy:
+  + Domain frontend: `https://projectm.io.vn` → container `frontend`.
+  + Domain API: `https://api.projectm.io.vn` → container `api-gateway`.
+- Mô hình kết nối:
+  + Browser (frontend) → `https://projectm.io.vn` → Nginx → container `frontend`.
+  + Browser (JS) gọi API → `https://api.projectm.io.vn` → Nginx → `api-gateway` → các service khác.
+
+
+3. MÔ TẢ CHI TIẾT TỪNG THÀNH PHẦN
+-------------------------------------
+
+3.1. Docker Compose và hạ tầng
+- File `docker-compose.yml` định nghĩa các service chính:
+  - `db`: PostgreSQL 14, có healthcheck, lưu dữ liệu vào volume `postgres_data`.
+  - `db-migration`: chạy Alembic để tạo cấu trúc bảng trước khi các service backend chính thức chạy.
+  - `api-gateway`: FastAPI làm gateway, có env chỉ định URL nội bộ tới các service khác (VD: `AUTH_SERVICE_URL=http://auth-service:8001`).
+  - Các service business: `auth-service`, `user-service`, `course-service`, `assignment-service`, `submission-service`, `grading-service`, `peer-review-service`, `plagiarism-service`, `notification-service`.
+  - `frontend`: build từ thư mục `frontend`, nhận biến build-time `VITE_API_BASE_URL` (thường là `/api` hoặc URL API public).
+
+- Các network:
+  - `app-network`: network nội bộ để các service backend nói chuyện với nhau và với DB.
+  - `web`: network external (do Nginx/Reverse Proxy bên ngoài quản lý) để kết nối các service public (gateway, frontend) với internet.
+
+3.2. API Gateway
+- Vị trí: `services/api-gateway/app/main.py`.
+- Vai trò:
+  - Nhận tất cả request từ frontend (VD: `/api/auth/login`, `/api/courses`, …).
+  - Dựa vào path để forward request tới service tương ứng:
+    + `/api/auth/**` → `auth-service`.
+    + `/api/courses/**` → `course-service` hoặc `assignment-service` (tùy logic path).
+    + `/api/assignments/**` → `assignment-service`, `submission-service`, `peer-review-service`, `plagiarism-service` tùy trường hợp.
+    + `/api/submissions/**` → `submission-service`.
+    + `/api/grades/**` → `grading-service`.
+    + `/api/notifications/**` → `notification-service`.
+- Chức năng khác:
+  - Lọc và forward các header quan trọng (đặc biệt là `Authorization`).
+  - Xử lý riêng response 204 (No Content) để tránh lỗi parse JSON.
+  - Thêm một số header CORS và Cache-Control ở gateway để tăng tính tương thích cho frontend.
+- CORS tại gateway:
+  - Đọc env `CORS_ORIGINS` (string cách nhau bằng dấu phẩy) → split thành list và truyền vào `CORSMiddleware`.
+  - Có fallback cho môi trường local (cho phép `http://localhost:3000`, `http://localhost:5173` nếu env không được set).
+
+3.3. Các microservice backend (mẫu: auth-service)
+- Mỗi service có cấu trúc tương đồng:
+  - `app/main.py`: khởi tạo FastAPI app, đăng ký router, middleware CORS, healthcheck.
+  - `app/core/config.py`: cấu hình `Settings` (pydantic settings) đọc từ env, bao gồm:
+    + `DATABASE_URL`
+    + `JWT_SECRET_KEY`, `JWT_ALGORITHM`, các thông số token
+    + `CORS_ORIGINS` (string comma-separated) và property `cors_origins_list` (split + strip)
+  - `app/models`: định nghĩa các model SQLAlchemy tương ứng bảng trong PostgreSQL.
+  - `app/schemas`: định nghĩa các schema (Pydantic) cho input/output API.
+  - `app/api`: định nghĩa các router: auth, users, courses, assignments, submissions, grading, v.v.
+
+- Ví dụ với `auth-service`:
+  - Chức năng:
+    + Đăng ký tài khoản.
+    + Đăng nhập, cấp JWT access token, refresh token.
+    + Xác thực user, phân quyền theo vai trò (Admin, Lecturer, Student).
+  - CORS:
+    + Trong `config.py` có `cors_origins_list = [origin.strip() for origin in self.CORS_ORIGINS.split(",")]`.
+    + Trong `main.py` dùng `allow_origins=settings.cors_origins_list`, nên tương thích với env production.
+
+- Các service khác:
+  - `course-service`: quản lý khóa học, lesson, tài liệu; có thể tích hợp Jitsi cho phòng học trực tuyến.
+  - `assignment-service`: quản lý bài tập, deadline, gán bài cho khóa học.
+  - `submission-service`: lưu bài nộp, quản lý upload file (mount volume `submission_uploads`).
+  - `grading-service`: xử lý rubric, điểm số, phục vụ báo cáo điểm.
+  - `peer-review-service`: đánh giá chéo giữa học viên.
+  - `plagiarism-service`: kiểm tra đạo văn (cấu trúc sẵn, có thể tích hợp thêm thuật toán/dịch vụ sau).
+  - `notification-service`: gửi thông báo (có cấu trúc SMTP, email, v.v.).
+
+3.4. Frontend (React/TypeScript)
+- Vị trí: `frontend/`.
+- Công nghệ:
+  - React 18, TypeScript, Vite, MUI, React Router, Axios.
+- Cấu trúc:
+  - `src/modules/*`: chia theo module chức năng (auth, courses, assignments, grading, admin, …).
+  - `src/shared/api`: cấp API client chung, dùng Axios.
+  - `src/router`: định nghĩa routes, `ProtectedRoute` để bảo vệ các trang cần đăng nhập.
+  - `src/theme`: quản lý theme chung MUI.
+- Tích hợp với backend:
+  - Toàn bộ request truy cập thông qua base URL (vd: `/api` hoặc `https://api.projectm.io.vn/api`).
+  - Sử dụng JWT (lưu trong storage) để gọi các endpoint cần xác thực.
+
+
+4. CHI TIẾT CSDL VÀ MIGRATION
+-------------------------------
+
+4.1. Cơ sở dữ liệu PostgreSQL
+- Dùng một database chính `assignment_management` (hoặc tên được config trong env).
+- Mỗi service quản lý một tập bảng riêng, nhưng có liên kết logic với nhau:
+  - Auth/User:
+    + Bảng users, roles, user_roles, refresh_tokens, …
+  - Course:
+    + Bảng courses, lessons, categories, materials, enrollments, …
+  - Assignment:
+    + Bảng assignments, assignment_course_links (nếu tách), …
+  - Submission:
+    + Bảng submissions, file metadata, …
+  - Grading:
+    + Bảng grades, rubrics, criterion, …
+  - Peer Review:
+    + Bảng peer_reviews, review_comments, …
+  - Notification:
+    + Bảng notifications, notification_templates, …
+
+4.2. Migration (Alembic)
+- Mỗi service có thư mục `alembic` riêng, phụ trách quản lý thay đổi schema:
+  - Giúp update CSDL theo thời gian mà không mất dữ liệu.
+  - Ví dụ: thêm bảng mới, thêm cột mới, sửa kiểu dữ liệu.
+- Quá trình khởi động:
+  - Service `db-migration-service` được build và chạy trước, thực hiện apply migration, sau đó mới cho phép các service khác khởi động (thông qua `depends_on` và `condition: service_completed_successfully`).
+
+
+5. QUÁ TRÌNH TRIỂN KHAI LÊN VPS
+----------------------------------
+
+5.1. Chuẩn bị
+- VPS (Linux) đã cài:
+  - Docker
+  - Docker Compose
+  - Nginx hoặc Nginx Proxy Manager
+- Domain:
+  - `projectm.io.vn` (frontend).
+  - `api.projectm.io.vn` (API gateway).
+
+5.2. Các bước triển khai chính
+1. **Clone code trên VPS**:
+   - `git clone https://github.com/HuyenTran22/assignment_system.git`
+   - `cd assignment_system`
+
+2. **Tạo file `.env`**:
+   - Copy từ `.env.example` và chỉnh sửa:
+     + Thông tin database (`POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`).
+     + JWT secret, thời hạn token.
+     + `CORS_ORIGINS` phù hợp với domain production (sẽ nói rõ ở mục CORS).
+
+3. **Build và chạy Docker Compose**:
+   - `docker compose build`
+   - `docker compose up -d`
+
+4. **Cấu hình Nginx/Nginx Proxy Manager**:
+   - Reverse proxy `projectm.io.vn` → container `frontend` (port 80).
+   - Reverse proxy `api.projectm.io.vn` → container `api-gateway` (port 8000).
+   - Cấp SSL (Let's Encrypt) cho cả hai domain.
+
+5. **Kiểm tra hoạt động**:
+   - Mở browser truy cập `https://projectm.io.vn`.
+   - Đăng ký/đăng nhập, thử gọi các API cơ bản.
+
+
+6. XỬ LÝ LỖI THỰC TẾ: VẤn ĐỀ VỀ CORS
+-----------------------------------------
+
+6.1. Mô tả lỗi
+- Khi triển khai lên VPS, frontend chạy trên domain `https://projectm.io.vn`, backend API trên `https://api.projectm.io.vn`.
+- Triệu chứng:
+  - Browser báo lỗi:
+    + `No 'Access-Control-Allow-Origin' header is present on the requested resource.`
+    + `Response to preflight request doesn't pass access control check`.
+  - Các request `OPTIONS` (preflight) bị fail trước khi send request chính (`POST`/`GET`).
+  - Healthcheck frontend có thể báo `unhealthy` do gọi API không thành công.
+
+6.2. Phân tích nguyên nhân
+- Kiểm tra:
+  - `docker compose config | grep CORS` cho thấy biến môi trường `CORS_ORIGINS` đã được inject vào tất cả service → Docker và env không sai.
+  - Các service backend (auth, user, course, v.v.) sử dụng `settings.cors_origins_list` (đã split từ string env thành list) → cấu hình CORS trong các microservice đã đúng.
+  - Riêng `api-gateway` vẫn đang hard-code:
+    + `allow_origins=["http://localhost:3000", "http://localhost:5173"]`.
+
+- Kết luận:
+  - `CORS_ORIGINS` đã có trong env nhưng **gateway không dùng env mà dùng giá trị cố định cho localhost**.
+  - Kết hợp với việc frontend gọi API lên domain khác (`api.projectm.io.vn`) → preflight `OPTIONS` từ browser bị backend từ chối (vì origin không nằm trong `allow_origins`).
+
+6.3. Cách khắc phục chính xác
+- Bước 1: Cấu hình đúng giá trị env
+  - Sửa `.env` hoặc env ở môi trường deploy:
+    + `CORS_ORIGINS=https://projectm.io.vn,https://www.projectm.io.vn`
+  - Không cần và không nên đưa origin của chính API (`https://api.projectm.io.vn`) vào CORS, vì CORS chỉ cần origin của frontend (browser).
+
+- Bước 2: Sửa code CORS tại API Gateway
+  - Trước khi sửa:
+    + `allow_origins=["http://localhost:3000", "http://localhost:5173"]`.
+  - Sau khi sửa:
+    + Đọc env `CORS_ORIGINS`, split thành list, trim khoảng trắng và dùng cho `CORSMiddleware`.
+
+  - Logic chính đã implement:
+    + Đọc `CORS_ORIGINS` từ env → biến `cors_origins_env`.
+    + Split: `cors_origins = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()]`.
+    + Fallback nếu env trống: `["http://localhost:3000", "http://localhost:5173"]` (phục vụ môi trường dev).
+    + Truyền `cors_origins` vào `allow_origins` của `CORSMiddleware`.
+
+- Bước 3: Rebuild và redeploy
+  - Sau khi sửa code:
+    + `docker compose down`
+    + `docker compose build api-gateway`
+    + `docker compose up -d`
+  - Hoặc an toàn hơn:
+    + `docker compose down -v`
+    + `docker compose up -d --build`
+
+- Bước 4: Test bằng `curl`
+  - Trước khi kiểm tra bằng browser, dùng command:
+    - `curl -i -X OPTIONS https://api.projectm.io.vn/auth/login -H "Origin: https://projectm.io.vn" -H "Access-Control-Request-Method: POST"`
+  - Nếu thấy response có header:
+    + `Access-Control-Allow-Origin: https://projectm.io.vn`
+  - → CORS đã hoạt động chính xác, browser sẽ hết lỗi.
+
+
+7. ĐÁNH GIÁ KẾT QUẢ VÀ HƯỚNG PHÁT TRIỂN
+-------------------------------------------
+
+7.1. Kết quả đạt được
+- Xây dựng thành công một hệ thống LMS hoàn chỉnh:
+  - Có frontend hệ thống hóa giao diện cho cả admin, giảng viên, học viên.
+  - Có backend microservices cho các chức năng chính: auth, user, course, assignment, submission, grading, notification, …
+  - Có database PostgreSQL được thiết kế bài bản và được quản lý bằng Alembic.
+- Hệ thống đã được:
+  - Đóng gói bằng Docker & Docker Compose.
+  - Triển khai thành công lên VPS.
+  - Cấu hình domain và SSL, đáp ứng yêu cầu thực tế.
+- Khắc phục được lỗi CORS thực tế, hoàn thiện dòng chảy request từ frontend → API Gateway → các microservice.
+
+7.2. Kiến thức và kỹ năng đã áp dụng
+- Backend:
+  - FastAPI, Pydantic, SQLAlchemy, Alembic, JWT.
+  - Thiết kế API REST, routing, middleware, dependency injection.
+  - Xử lý lỗi, logging, healthcheck.
+- Frontend:
+  - React, TypeScript, MUI, React Router, Axios.
+  - Quản lý state, auth flow (login, lưu token, bảo vệ route).
+- DevOps & Deployment:
+  - Dockerfile cho từng service.
+  - Docker Compose orchestration.
+  - Triển khai trên VPS, cấu hình reverse proxy, SSL.
+  - Debug lỗi CORS, env, network giữa các container.
+
+7.3. Hạn chế và hướng phát triển
+- Hạn chế:
+  - Một số tính năng (plagiarism, peer-review nâng cao, payment thực tế) mới ở mức cơ sở hoặc khung (skeleton).
+  - Monitoring/Logging tập trung (như Prometheus, Grafana, ELK stack) chưa được tích hợp.
+  - Test tự động (unit test, integration test) còn ít.
+
+- Hướng phát triển:
+  - Hoàn thiện chức năng plagiarism với thuật toán so sánh văn bản hoặc tích hợp dịch vụ bên ngoài.
+  - Tích hợp payment thực tế (VNPay, MoMo) với webhook và đơn hàng.
+  - Bổ sung hệ thống thông báo real-time (WebSocket/Socket.IO).
+  - Bổ sung monitoring, alerting, logging tập trung.
+  - Viết thêm test tự động để tăng độ tin cậy.
+
+
+8. KẾT LUẬN
+-----------
+
+- Dự án **Hệ Thống Quản Lý Khóa Học Trực Tuyến (LMS)** đã đạt được mục tiêu đề ra:
+  - Hoàn thiện từ frontend, backend (microservices), database, cho tới khâu deployment trên môi trường thực.
+  - Áp dụng đầy đủ các công nghệ hiện đại như FastAPI, React, Docker, Nginx, PostgreSQL.
+  - Giải quyết được các vấn đề thực tế trong triển khai, đặc biệt là CORS giữa frontend và API.
+
+- Báo cáo này tổng hợp lại:
+  - Mục đích, mục tiêu, kiến trúc, chi tiết các thành phần.
+  - Quá trình triển khai và cách xử lý một lỗi điển hình trong môi trường production.
+  - Kiến thức, kỹ năng đã áp dụng và hướng phát triển tương lai.
+
+- Có thể xem dự án này như một nền tảng cơ bản, dễ dàng mở rộng để trở thành một hệ thống LMS hoàn chỉnh sử dụng trong thực tế.
+
+
