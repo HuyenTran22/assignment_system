@@ -76,8 +76,8 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
       SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
       SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_USER: ${SMTP_USER:-kyquangnguyen123@gmail.com}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-mzd vrvg lfmf usxs}
       SMTP_FROM: ${SMTP_FROM:-noreply@assignment.com}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
@@ -101,8 +101,8 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
       SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
       SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_USER: ${SMTP_USER:-kyquangnguyen123@gmail.com}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-mzd vrvg lfmf usxs}
       SMTP_FROM: ${SMTP_FROM:-noreply@assignment.com}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-super-secret-key-change-in-production-min-32-chars}
@@ -243,8 +243,8 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@db:5432/${POSTGRES_DB:-assignment_management}
       SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
       SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_USER: ${SMTP_USER:-kyquangnguyen123@gmail.com}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-mzd vrvg lfmf usxs}
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-noreply@assignment.com}
       SMTP_FROM_NAME: ${SMTP_FROM_NAME:-Assignment Management System}
       SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
@@ -262,7 +262,7 @@ services:
       args:
         # Default to empty string - frontend code already has /api prefix
         # If using separate domains, set VITE_API_BASE_URL=https://api.projectm.io.vn in .env
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-https://api.projectm.io.vn}
     container_name: frontend
     restart: unless-stopped
     expose:
