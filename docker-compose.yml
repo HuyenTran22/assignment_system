@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres123
+      POSTGRES_PASSWORD: 123456
       POSTGRES_DB: assignment_management
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -24,11 +24,11 @@ services:
     container_name: db_migration
     restart: "no"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres123@db:5432/assignment_management
+      DATABASE_URL: postgresql://postgres:123456@db:5432/assignment_management
       DB_HOST: db
       DB_PORT: 5432
       DB_USER: postgres
-      DB_PASSWORD: postgres123
+      DB_PASSWORD: 123456
       DB_NAME: assignment_management
     depends_on:
       db:
@@ -67,7 +67,7 @@ services:
     expose:
       - "8001"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres123@db:5432/assignment_management
+      DATABASE_URL: postgresql://postgres:123456@db:5432/assignment_management
       SMTP_HOST: smtp.gmail.com
       SMTP_PORT: 587
       SMTP_USER: kyquangnguyen123@gmail.com
@@ -90,7 +90,7 @@ services:
     expose:
       - "8002"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres123@db:5432/assignment_management
+      DATABASE_URL: postgresql://postgres:123456@db:5432/assignment_management
       SMTP_HOST: smtp.gmail.com
       SMTP_PORT: 587
       SMTP_USER: kyquangnguyen123@gmail.com
@@ -113,7 +113,7 @@ services:
     expose:
       - "8003"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres123@db:5432/assignment_management
+      DATABASE_URL: postgresql://postgres:123456@db:5432/assignment_management
       ASSIGNMENT_SERVICE_URL: http://assignment-service:8004
       GRADING_SERVICE_URL: http://grading-service:8006
       AUTH_SERVICE_URL: http://auth-service:8001
@@ -135,7 +135,7 @@ services:
     expose:
       - "8004"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres123@db:5432/assignment_management
+      DATABASE_URL: postgresql://postgres:123456@db:5432/assignment_management
       NOTIFICATION_SERVICE_URL: http://notification-service:8009
       JWT_SECRET_KEY: super-secret-key-change-in-production-min-32-chars
       JWT_ALGORITHM: HS256
@@ -153,7 +153,7 @@ services:
     expose:
       - "8005"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres123@db:5432/assignment_management
+      DATABASE_URL: postgresql://postgres:123456@db:5432/assignment_management
       UPLOAD_DIR: /app/uploads
       PLAGIARISM_SERVICE_URL: http://plagiarism-service:8008
       JWT_SECRET_KEY: super-secret-key-change-in-production-min-32-chars
@@ -174,7 +174,7 @@ services:
     expose:
       - "8006"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres123@db:5432/assignment_management
+      DATABASE_URL: postgresql://postgres:123456@db:5432/assignment_management
       JWT_SECRET_KEY: super-secret-key-change-in-production-min-32-chars
       JWT_ALGORITHM: HS256
       CORS_ORIGINS: https://projectm.io.vn,https://www.projectm.io.vn
@@ -191,7 +191,7 @@ services:
     expose:
       - "8007"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres123@db:5432/assignment_management
+      DATABASE_URL: postgresql://postgres:123456@db:5432/assignment_management
       JWT_SECRET_KEY: super-secret-key-change-in-production-min-32-chars
       JWT_ALGORITHM: HS256
       CORS_ORIGINS: https://projectm.io.vn,https://www.projectm.io.vn
@@ -208,7 +208,7 @@ services:
     expose:
       - "8008"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres123@db:5432/assignment_management
+      DATABASE_URL: postgresql://postgres:123456@db:5432/assignment_management
       JWT_SECRET_KEY: super-secret-key-change-in-production-min-32-chars
       JWT_ALGORITHM: HS256
       CORS_ORIGINS: https://projectm.io.vn,https://www.projectm.io.vn
@@ -225,7 +225,7 @@ services:
     expose:
       - "8009"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres123@db:5432/assignment_management
+      DATABASE_URL: postgresql://postgres:123456@db:5432/assignment_management
       SMTP_HOST: smtp.gmail.com
       SMTP_PORT: 587
       SMTP_USER: kyquangnguyen123@gmail.com
